@@ -35,7 +35,6 @@ export class User {
     trim: true,
     minlength: 8,
     required: true,
-    select: false,
   })
   password: string;
 
