@@ -8,10 +8,33 @@ import { UserService } from './user.service';
 import { IUser } from './interfaces/user.interface';
 import { Role } from './entities/role.enum';
 import { Roles } from './decorators/roles.decorator';
-
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiForbiddenResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
+@ApiTags('User')
 @Controller('users')
 export class UserController {
   constructor(private readonly _userService: UserService) {}
+
+  @ApiOperation({
+    summary: 'This api is used for get authenticated user profile',
+  })
+  @ApiBearerAuth('Authorization')
+  @ApiOkResponse({
+    description: 'Get user profile',
+  })
+  @ApiBadRequestResponse({
+    description: 'Bad Request',
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @UseGuards(JwtGuard)
   @Get('me')
   async getMe(
@@ -38,6 +61,17 @@ export class UserController {
       return next(error);
     }
   }
+
+  @ApiOperation({
+    summary: 'This api is used for get all users ',
+  })
+  // @ApiBearerAuth('Authorization')
+  @ApiOkResponse({
+    description: 'Get all users',
+  })
+  @ApiBadRequestResponse({
+    description: 'Bad Request',
+  })
   @Get()
   async getAllUser(@Res() res: Response, @Next() next: NextFunction) {
     try {
@@ -60,7 +94,22 @@ export class UserController {
       next(error);
     }
   }
+
+  @ApiOperation({
+    summary: 'This api helps to admin to delete the user',
+  })
+  // @ApiBearerAuth('Authorization')
+  // @ApiConsumes('multipart/form-data')
+  @ApiOkResponse({
+    description: 'Delete user',
+  })
+  @ApiBadRequestResponse({
+    description: 'Bad Request',
+  })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   @UseGuards(JwtGuard, RolesGuard)
+  @ApiBearerAuth('Authorization')
   @Roles(Role.ADMIN)
   @Delete(':id')
   async adminRemoveUser(

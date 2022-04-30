@@ -9,7 +9,7 @@ export interface IUser extends Document {
   readonly contactNo: string;
   uniqueId: string;
   readonly imageUrl?: string;
-  readonly role?: string;
+  readonly role?: string[];
   readonly address: string;
   /* street?: string; */
   readonly city?: string;

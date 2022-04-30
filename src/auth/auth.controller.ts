@@ -1,9 +1,21 @@
 import { Body, Controller, HttpStatus, Next, Post, Res } from '@nestjs/common';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiConflictResponse,
+  ApiConsumes,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiProduces,
+  ApiTags,
+} from '@nestjs/swagger';
 import { NextFunction, Response } from 'express';
 import { UserService } from 'src/user/user.service';
 import { AuthService } from './auth.services';
 import { AuthLoginDto, AuthSignupDto } from './dto';
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -11,6 +23,18 @@ export class AuthController {
     private readonly _authService: AuthService,
   ) {}
 
+  @ApiOperation({
+    summary: 'This api is used for signup user',
+  })
+  @ApiCreatedResponse({
+    description: 'Signup success',
+  })
+  @ApiConflictResponse({ description: 'Conflict Response' })
+  @ApiBadRequestResponse({
+    description: 'Bad Request',
+  })
+  @ApiConsumes('application/json')
+  @ApiProduces('application/json')
   @Post('signup')
   async authSignup(
     @Body() authSignupDto: AuthSignupDto,
@@ -44,6 +68,17 @@ export class AuthController {
     }
   }
 
+  @ApiOperation({
+    summary: 'This api is used for login in to the system',
+  })
+  @ApiOkResponse({
+    description: 'Login success',
+  })
+  @ApiBadRequestResponse({
+    description: 'Bad Request',
+  })
+  @ApiConsumes('application/json')
+  @ApiProduces('application/json')
   @Post('login')
   async authLogin(
     @Body() authLoginDto: AuthLoginDto,

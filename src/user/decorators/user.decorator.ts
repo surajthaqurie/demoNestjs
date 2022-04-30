@@ -10,3 +10,9 @@ export const GetUser = createParamDecorator(
     return request.user;
   },
 );
+
+export const getBodyRequest = createParamDecorator(
+  (data: string | undefined, req) => {
+    return data ? req.body && req.body[data] : req.body;
+  },
+);
