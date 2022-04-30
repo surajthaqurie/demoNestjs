@@ -6,12 +6,14 @@ import * as bcrypt from 'bcrypt';
 
 export type UserDocument = User & mongoose.Document;
 
-@Schema({
-  toJSON: {
-    virtuals: true,
-  },
-})
+@Schema()
 export class User {
+  @Prop({
+    type: String,
+    trim: true,
+  })
+  fullName: string;
+
   @Prop({
     type: String,
     trim: true,
@@ -63,8 +65,8 @@ export class User {
   @Prop({ type: String, trim: true })
   imageUrl: string;
 
-  @Prop({ type: String, trim: true, required: true, default: 'user' })
-  role: string;
+  @Prop({ type: [String], trim: true, required: true, default: ['user'] })
+  role: string[];
 
   @Prop({
     type: String,
@@ -114,12 +116,9 @@ export class User {
 
 const UserSchema = SchemaFactory.createForClass(User);
 
-UserSchema.virtual('fullName').get(function (this: UserDocument) {
-  return `${this.firstName} ${this.lastName}`;
-});
-
 UserSchema.pre('save', async function (this: UserDocument, next: NextFunction) {
   let user = this;
+
   if (!user.isModified('password')) return next();
 
   const salt = await bcrypt.genSalt(parseInt(process.env.BCRYPT_SALT));
@@ -130,8 +129,15 @@ UserSchema.pre('save', async function (this: UserDocument, next: NextFunction) {
   next();
 });
 
-UserSchema.methods.comparePassword = async function (password: string) {
-  return await bcrypt.compare(password, this.password);
-};
+UserSchema.pre('save', async function (this: UserDocument, next: NextFunction) {
+  let user = this;
+
+  if (!user.isModified('firstName') && !user.isModified('lastName'))
+    return next();
+
+  user.fullName = this.firstName + '' + this.lastName;
+
+  next();
+});
 
 export { UserSchema };

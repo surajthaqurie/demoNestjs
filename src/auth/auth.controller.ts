@@ -1,7 +1,6 @@
 import { Body, Controller, HttpStatus, Next, Post, Res } from '@nestjs/common';
 import { NextFunction, Response } from 'express';
 import { UserService } from 'src/user/user.service';
-import { IUser } from 'src/user/utils/user.interface';
 import { AuthService } from './auth.services';
 import { AuthLoginDto, AuthSignupDto } from './dto';
 

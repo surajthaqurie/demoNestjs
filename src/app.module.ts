@@ -4,7 +4,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
-// import { UserModule } from './user/user.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -12,7 +12,7 @@ import { AuthModule } from './auth/auth.module';
       dbName: process.env.DB_NAME,
     }),
     AuthModule,
-    // UserModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],

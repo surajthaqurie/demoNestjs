@@ -2,8 +2,8 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
-import { User } from './utils/user.schema';
-import { IUser } from './utils/user.interface';
+import { User } from './schemas/user.schema';
+import { IUser } from './interfaces/user.interface';
 import { AuthLoginDto, AuthSignupDto } from 'src/auth/dto';
 
 import * as uuid from 'uuid';
@@ -26,7 +26,7 @@ export class UserService {
         throw new HttpException(
           {
             success: false,
-            status: HttpStatus.CONFLICT,
+            status: 'Conflict',
             msg: 'Sorry !!! this email address is already taken',
           },
           HttpStatus.CONFLICT,
@@ -39,7 +39,7 @@ export class UserService {
         throw new HttpException(
           {
             success: false,
-            status: HttpStatus.CONFLICT,
+            status: 'Conflict',
             msg: 'Sorry !!! this phone number is already taken',
           },
           HttpStatus.CONFLICT,
@@ -71,15 +71,12 @@ export class UserService {
         throw new HttpException(
           {
             success: false,
-            status: HttpStatus.NOT_FOUND,
+            status: 'Bad Request',
             msg: 'Sorry !!! invalid credentials',
           },
           HttpStatus.NOT_FOUND,
         );
       }
-      console.log(userLoginDto.password);
-      console.log(user.password);
-
       const passMatched = await bcrypt.compare(
         userLoginDto.password,
         user.password,
@@ -89,7 +86,7 @@ export class UserService {
         throw new HttpException(
           {
             success: false,
-            status: HttpStatus.NOT_FOUND,
+            status: 'Bad Request',
             msg: 'Sorry !!! invalid credentials',
           },
           HttpStatus.NOT_FOUND,
@@ -102,7 +99,80 @@ export class UserService {
   }
 
   async findByPayload(payload: any) {
-    console.log(payload);
-    return await this._userModel.findOne({ uniqueId: payload.userId });
+    return await this._userModel
+      .findOne({ uniqueId: payload.userId })
+      .select('-password -uniqueId');
+  }
+
+  async getUserProfile(user: IUser): Promise<IUser> {
+    try {
+      if (!user) {
+        throw new HttpException(
+          {
+            success: false,
+            status: 'Not Found',
+            msg: 'Sorry !!! user record not found',
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async getAllUser(): Promise<IUser[]> {
+    try {
+      const users = await this._userModel.find(
+        {},
+        {
+          fullName: 1,
+          email: 1,
+          contactNo: 1,
+          imageUrl: 1,
+          address: 1,
+          city: 1,
+          zipCode: 1,
+          country: 1,
+          created_on: 1,
+        },
+      );
+      if (users.length === 0) {
+        throw new HttpException(
+          {
+            success: false,
+            status: 'Not Found',
+            msg: 'Sorry !!! users records not found',
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      return users;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async adminRemoveUser(id: string): Promise<IUser> {
+    try {
+      const user = await this._userModel
+        .findByIdAndDelete(id)
+        .select('-password -uniqueId');
+
+      if (!user) {
+        throw new HttpException(
+          {
+            success: false,
+            status: 'Not Found',
+            msg: 'User record not found',
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      return user;
+    } catch (error) {
+      throw error;
+    }
   }
 }
