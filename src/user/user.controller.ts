@@ -1,5 +1,5 @@
 const { Controller, Get, Res, Req, Next } = require('@nestjs/common');
-import { Delete, HttpStatus, Param, UseGuards } from '@nestjs/common';
+import { Delete, HttpStatus, Param, Patch, UseGuards } from '@nestjs/common';
 import { NextFunction, Response } from 'express';
 
 import { JwtGuard, RolesGuard } from '../guard';
@@ -14,8 +14,6 @@ import {
   ApiForbiddenResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiParam,
-  ApiQuery,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -35,6 +33,7 @@ export class UserController {
     description: 'Bad Request',
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  /**************************************************/
   @UseGuards(JwtGuard)
   @Get('me')
   async getMe(
@@ -72,6 +71,7 @@ export class UserController {
   @ApiBadRequestResponse({
     description: 'Bad Request',
   })
+  /**************************************************/
   @Get()
   async getAllUser(@Res() res: Response, @Next() next: NextFunction) {
     try {
@@ -87,7 +87,41 @@ export class UserController {
       return res.status(HttpStatus.OK).json({
         success: true,
         status: 'Success',
-        msg: 'Getting user profile successfully',
+        msg: 'Getting all users successfully',
+        users,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  @ApiOperation({
+    summary: 'This api is used for get all temporary deleted users ',
+  })
+  // @ApiBearerAuth('Authorization')
+  @ApiOkResponse({
+    description: 'Get all users',
+  })
+  @ApiBadRequestResponse({
+    description: 'Bad Request',
+  })
+  /**************************************************/
+  @Get('get/deleted')
+  async getAllDeletedUser(@Res() res: Response, @Next() next: NextFunction) {
+    try {
+      const users = await this._userService.getAllDeletedUser();
+
+      if (!users) {
+        res.status(HttpStatus.BAD_REQUEST).json({
+          success: false,
+          status: 'Bad Request',
+          msg: 'Sorry !! something went wrong unable to get users',
+        });
+      }
+      return res.status(HttpStatus.OK).json({
+        success: true,
+        status: 'Success',
+        msg: 'Getting user deleted users successfully',
         users,
       });
     } catch (error) {
@@ -101,18 +135,19 @@ export class UserController {
   // @ApiBearerAuth('Authorization')
   // @ApiConsumes('multipart/form-data')
   @ApiOkResponse({
-    description: 'Delete user',
+    description: 'Admin delete user',
   })
   @ApiBadRequestResponse({
     description: 'Bad Request',
   })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
-  @UseGuards(JwtGuard, RolesGuard)
   @ApiBearerAuth('Authorization')
+  /**************************************************/
+  @UseGuards(JwtGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Delete(':id')
-  async adminRemoveUser(
+  async adminDeleteUser(
     @Param('id') id: string,
     @Res() res: Response,
     @Next() next: NextFunction,
@@ -135,5 +170,37 @@ export class UserController {
     } catch (error) {
       next(error);
     }
+  }
+
+  @ApiOkResponse({
+    description: 'Delete user',
+  })
+  @ApiBadRequestResponse({
+    description: 'Bad Request',
+  })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized' })
+  @ApiBearerAuth('Authorization')
+  /**************************************************/
+  @Patch('delete')
+  @UseGuards(JwtGuard)
+  async tempDeleteUser(
+    @GetUser() user: IUser,
+    @Res() res: Response,
+    @Next() next: NextFunction,
+  ) {
+    const deleteUser = await this._userService.tempDeleteUser(user);
+
+    if (!deleteUser) {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        success: false,
+        status: 'Bad Request',
+        msg: 'Sorry !! something went wrong unable to delete user',
+      });
+    }
+    return res.status(HttpStatus.OK).json({
+      success: true,
+      status: 'Success',
+      msg: 'User deleted successfully',
+    });
   }
 }

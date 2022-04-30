@@ -58,7 +58,7 @@ export class AuthController {
 
       const token = await this._authService.generateJwtToken(payload);
 
-      return res.status(HttpStatus.OK).json({
+      return res.status(HttpStatus.CREATED).json({
         success: true,
         msg: 'User signed up successfully',
         token,

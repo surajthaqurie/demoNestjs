@@ -20,7 +20,7 @@ export class UserService {
   }
   async userSignup(userSignupDto: AuthSignupDto): Promise<IUser> {
     try {
-      let query: object = { email: userSignupDto.email, deleted: false };
+      let query: object = { email: userSignupDto.email /* , deleted: false */ };
       let userCheck = await this._userModel.findOne(query);
       if (userCheck) {
         throw new HttpException(
@@ -33,7 +33,7 @@ export class UserService {
         );
       }
 
-      query = { contactNo: userSignupDto.contactNo, deleted: false };
+      query = { contactNo: userSignupDto.contactNo /* , deleted: false */ };
       userCheck = await this._userModel.findOne(query);
       if (userCheck) {
         throw new HttpException(
@@ -124,7 +124,39 @@ export class UserService {
   async getAllUser(): Promise<IUser[]> {
     try {
       const users = await this._userModel.find(
-        {},
+        { deleted: false },
+        {
+          fullName: 1,
+          email: 1,
+          contactNo: 1,
+          imageUrl: 1,
+          address: 1,
+          city: 1,
+          zipCode: 1,
+          country: 1,
+          created_on: 1,
+        },
+      );
+      if (users.length === 0) {
+        throw new HttpException(
+          {
+            success: false,
+            status: 'Not Found',
+            msg: 'Sorry !!! users records not found',
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      return users;
+    } catch (error) {
+      throw error;
+    }
+  }
+  async getAllDeletedUser(): Promise<IUser[]> {
+    try {
+      const users = await this._userModel.find(
+        { deleted: true },
         {
           fullName: 1,
           email: 1,
@@ -171,6 +203,39 @@ export class UserService {
         );
       }
       return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async tempDeleteUser(user: IUser): Promise<IUser> {
+    try {
+      console.log(user);
+      const query = { _id: user._id, deleted: false };
+      const deletedUser = await this._userModel.findOneAndUpdate(
+        query,
+        {
+          deleted: true,
+          deleted_on: Date.now(),
+          deleted_by: user.uniqueId,
+        },
+        {
+          new: true,
+        },
+      );
+
+      if (!deletedUser) {
+        throw new HttpException(
+          {
+            success: false,
+            status: 'Not Found',
+            msg: 'User record not found',
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      return deletedUser;
     } catch (error) {
       throw error;
     }

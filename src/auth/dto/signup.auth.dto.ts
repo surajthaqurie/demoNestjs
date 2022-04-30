@@ -82,7 +82,8 @@ export class AuthSignupDto {
     required: true,
     minLength: 10,
     maxLength: 10,
-    example: '123456890',
+    uniqueItems: true,
+    example: '1234567890',
   })
   @IsNotEmpty({ message: 'Contact number is required' })
   @IsString() // @IsInt()
