@@ -6,7 +6,10 @@ import * as bcrypt from 'bcrypt';
 // import { Transform ,Exclude} from 'class-transformer';
 
 type UserDocument = User & mongoose.Document;
+<<<<<<< HEAD
 
+=======
+>>>>>>> e396d83d1d22c9dc14b806f4f469c6aeef612803
 @Schema()
 export class User {
   // @Transform(({ value }) => value.toString())
@@ -117,8 +120,13 @@ export class User {
   @Prop({ type: String })
   deleted_by: string;
 
+<<<<<<< HEAD
   getUserInfo: Function;
   verifyPassword: Function;
+=======
+  comparePassword: Function;
+  getUserInfo: Function;
+>>>>>>> e396d83d1d22c9dc14b806f4f469c6aeef612803
 }
 
 const UserSchema = SchemaFactory.createForClass(User);
@@ -152,6 +160,7 @@ UserSchema.methods.getUserInfo = function (this: UserDocument): object {
   const user = this;
   const userObject = user.toObject();
 
+<<<<<<< HEAD
   /* delete operator to delete object stuffs */
   // delete userObject.uniqueId;
   delete userObject.password;
@@ -159,6 +168,16 @@ UserSchema.methods.getUserInfo = function (this: UserDocument): object {
 };
 
 UserSchema.methods.verifyPassword = async function (
+=======
+  // delete operator to delete object stuffs
+  // delete userObject.uniqueId;
+  delete userObject.password;
+
+  return userObject;
+};
+
+UserSchema.methods.comparePassword = async function (
+>>>>>>> e396d83d1d22c9dc14b806f4f469c6aeef612803
   this: UserDocument,
   password: string,
 ): Promise<boolean> {

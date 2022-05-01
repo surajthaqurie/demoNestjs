@@ -7,8 +7,6 @@ import { IUser } from './interfaces/user.interface';
 import { AuthLoginDto, AuthSignupDto } from 'src/auth/dto';
 
 import * as uuid from 'uuid';
-import * as bcrypt from 'bcrypt';
-
 @Injectable()
 export class UserService {
   constructor(
@@ -77,7 +75,11 @@ export class UserService {
           HttpStatus.NOT_FOUND,
         );
       }
+<<<<<<< HEAD
       const passMatched = await user.verifyPassword(userLoginDto.password);
+=======
+      const passMatched = await user.comparePassword(userLoginDto.password);
+>>>>>>> e396d83d1d22c9dc14b806f4f469c6aeef612803
       if (!passMatched) {
         throw new HttpException(
           {

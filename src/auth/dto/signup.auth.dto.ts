@@ -10,7 +10,6 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-
 export class AuthSignupDto {
   @ApiProperty({
     type: String,

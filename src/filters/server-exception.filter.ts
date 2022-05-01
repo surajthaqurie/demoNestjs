@@ -41,11 +41,18 @@ export class ServerExceptionFilter implements ExceptionFilter {
     // const { status, msg }: any = exception?.getResponse();
 
     const responseMessage = (type: string, message: string) => {
+<<<<<<< HEAD
       response.status(statusCode).json({
         success: false,
         status: statusCode,
         error: type || errorStatus,
         msg: message || errorMessage,
+=======
+      response.status(status).json({
+        status: status,
+        error: type,
+        msg: message,
+>>>>>>> e396d83d1d22c9dc14b806f4f469c6aeef612803
         method: request.method,
         // host: request.headers.host,
         // path: request.url,
