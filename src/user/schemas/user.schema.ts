@@ -3,11 +3,14 @@ import { NextFunction } from 'express';
 
 import * as mongoose from 'mongoose';
 import * as bcrypt from 'bcrypt';
+// import { Transform ,Exclude} from 'class-transformer';
 
-export type UserDocument = User & mongoose.Document;
+type UserDocument = User & mongoose.Document;
 
 @Schema()
 export class User {
+  // @Transform(({ value }) => value.toString())
+  // _id: string;
   @Prop({
     type: String,
     trim: true,
@@ -38,6 +41,7 @@ export class User {
     minlength: 8,
     required: true,
   })
+  // @Exclude()
   password: string;
 
   @Prop({
@@ -112,32 +116,53 @@ export class User {
 
   @Prop({ type: String })
   deleted_by: string;
+
+  getUserInfo: Function;
+  verifyPassword: Function;
 }
 
 const UserSchema = SchemaFactory.createForClass(User);
 
+/************************************************* 
+ * Adding a middleware before modeling the schema
+@pre : doing some thing before users are 'save'
+@post : doing some thing after users are 'save'
+ */
 UserSchema.pre('save', async function (this: UserDocument, next: NextFunction) {
   let user = this;
-
   if (!user.isModified('password')) return next();
-
   const salt = await bcrypt.genSalt(parseInt(process.env.BCRYPT_SALT));
   const hashPassword = await bcrypt.hash(user.password, salt);
-
   user.password = hashPassword;
-
   next();
 });
 
 UserSchema.pre('save', async function (this: UserDocument, next: NextFunction) {
   let user = this;
-
   if (!user.isModified('firstName') && !user.isModified('lastName'))
     return next();
-
   user.fullName = this.firstName + '' + this.lastName;
-
   next();
 });
+
+/*************************************************
+ * Adding custom method for instance and individual document
+ */
+UserSchema.methods.getUserInfo = function (this: UserDocument): object {
+  const user = this;
+  const userObject = user.toObject();
+
+  /* delete operator to delete object stuffs */
+  // delete userObject.uniqueId;
+  delete userObject.password;
+  return userObject;
+};
+
+UserSchema.methods.verifyPassword = async function (
+  this: UserDocument,
+  password: string,
+): Promise<boolean> {
+  return await bcrypt.compare(password, this.password);
+};
 
 export { UserSchema };

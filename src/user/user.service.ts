@@ -16,35 +16,35 @@ export class UserService {
   ) {}
 
   #sanitizeUser(user: IUser) {
-    return user.depopulate('password');
+    return user.getUserInfo();
   }
   async userSignup(userSignupDto: AuthSignupDto): Promise<IUser> {
     try {
       let query: object = { email: userSignupDto.email /* , deleted: false */ };
       let userCheck = await this._userModel.findOne(query);
-      // if (userCheck) {
-      //   throw new HttpException(
-      //     {
-      //       success: false,
-      //       status: 'Conflict',
-      //       msg: 'Sorry !!! this email address is already taken',
-      //     },
-      //     HttpStatus.CONFLICT,
-      //   );
-      // }
+      if (userCheck) {
+        throw new HttpException(
+          {
+            success: false,
+            status: 'Conflict',
+            msg: 'Sorry !!! this email address is already taken',
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
 
-      // query = { contactNo: userSignupDto.contactNo /* , deleted: false */ };
-      // userCheck = await this._userModel.findOne(query);
-      // if (userCheck) {
-      //   throw new HttpException(
-      //     {
-      //       success: false,
-      //       status: 'Conflict',
-      //       msg: 'Sorry !!! this phone number is already taken',
-      //     },
-      //     HttpStatus.CONFLICT,
-      //   );
-      // }
+      query = { contactNo: userSignupDto.contactNo /* , deleted: false */ };
+      userCheck = await this._userModel.findOne(query);
+      if (userCheck) {
+        throw new HttpException(
+          {
+            success: false,
+            status: 'Conflict',
+            msg: 'Sorry !!! this phone number is already taken',
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
 
       const createUser = new this._userModel(userSignupDto);
       createUser.uniqueId = createUser.created_by = uuid.v4();
@@ -77,11 +77,7 @@ export class UserService {
           HttpStatus.NOT_FOUND,
         );
       }
-      const passMatched = await bcrypt.compare(
-        userLoginDto.password,
-        user.password,
-      );
-
+      const passMatched = await user.verifyPassword(userLoginDto.password);
       if (!passMatched) {
         throw new HttpException(
           {
@@ -121,22 +117,25 @@ export class UserService {
       throw error;
     }
   }
-  async getAllUser(): Promise<IUser[]> {
+  async getAllUser(limit: number, skip: number): Promise<IUser[]> {
     try {
-      const users = await this._userModel.find(
-        { deleted: false },
-        {
-          fullName: 1,
-          email: 1,
-          contactNo: 1,
-          imageUrl: 1,
-          address: 1,
-          city: 1,
-          zipCode: 1,
-          country: 1,
-          created_on: 1,
-        },
-      );
+      const users = await this._userModel
+        .find(
+          { deleted: false },
+          {
+            fullName: 1,
+            email: 1,
+            contactNo: 1,
+            imageUrl: 1,
+            address: 1,
+            city: 1,
+            zipCode: 1,
+            country: 1,
+            created_on: 1,
+          },
+        )
+        .limit(limit)
+        .skip((skip - 1) * limit);
       if (users.length === 0) {
         throw new HttpException(
           {
