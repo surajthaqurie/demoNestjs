@@ -24,11 +24,6 @@ export interface IUser extends Document {
   readonly deleted_on?: Date;
   readonly deleted_by?: string;
 
-<<<<<<< HEAD
   readonly getUserInfo: Function;
   readonly verifyPassword: Function;
-=======
-  readonly comparePassword: Function;
-  readonly getUserInfo: Function;
->>>>>>> e396d83d1d22c9dc14b806f4f469c6aeef612803
 }
