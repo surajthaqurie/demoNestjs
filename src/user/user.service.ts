@@ -75,7 +75,11 @@ export class UserService {
           HttpStatus.NOT_FOUND,
         );
       }
+<<<<<<< HEAD
       const passMatched = await user.comparePassword(userLoginDto.password);
+=======
+      const passMatched = await user.verifyPassword(userLoginDto.password);
+>>>>>>> suraj
       if (!passMatched) {
         throw new HttpException(
           {
@@ -115,22 +119,25 @@ export class UserService {
       throw error;
     }
   }
-  async getAllUser(): Promise<IUser[]> {
+  async getAllUser(limit: number, skip: number): Promise<IUser[]> {
     try {
-      const users = await this._userModel.find(
-        { deleted: false },
-        {
-          fullName: 1,
-          email: 1,
-          contactNo: 1,
-          imageUrl: 1,
-          address: 1,
-          city: 1,
-          zipCode: 1,
-          country: 1,
-          created_on: 1,
-        },
-      );
+      const users = await this._userModel
+        .find(
+          { deleted: false },
+          {
+            fullName: 1,
+            email: 1,
+            contactNo: 1,
+            imageUrl: 1,
+            address: 1,
+            city: 1,
+            zipCode: 1,
+            country: 1,
+            created_on: 1,
+          },
+        )
+        .limit(limit)
+        .skip((skip - 1) * limit);
       if (users.length === 0) {
         throw new HttpException(
           {

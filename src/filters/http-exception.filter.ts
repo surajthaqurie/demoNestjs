@@ -25,6 +25,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
       ? exception.getStatus()
       : HttpStatus.INTERNAL_SERVER_ERROR;
 
+    // console.log(exception.getResponse());
+
     const { message, error, msg, status }: any = exception.getResponse();
     // const { message }: any = exception.getResponse();
     // const { error }: any = exception.getResponse();
@@ -32,8 +34,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
     // const { status }: any = exception.getResponse();
 
     response.status(statusCode).json({
-      status: statusCode,
       success: false,
+      status: statusCode,
       error: error || message || status,
       msg: message || msg,
       method: request.method,

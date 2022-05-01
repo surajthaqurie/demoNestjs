@@ -26,7 +26,7 @@ import {
 } from '@nestjs/swagger';
 
 import { NextFunction, Response } from 'express';
-import { AppInterceptor } from 'src/interceptor';
+import { AppInterceptor } from '../interceptor';
 import { UserService } from 'src/user/user.service';
 import { AuthService } from './auth.services';
 import { AuthLoginDto, AuthSignupDto } from './dto';
@@ -106,6 +106,7 @@ export class AuthController {
   ) {
     try {
       const user = await this._userService.userLogin(authLoginDto);
+      console.log(user);
       if (!user) {
         return res.status(HttpStatus.BAD_REQUEST).json({
           success: false,

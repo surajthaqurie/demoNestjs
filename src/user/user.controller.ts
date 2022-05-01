@@ -1,6 +1,14 @@
 const { Controller, Get, Res, Req, Next } = require('@nestjs/common');
-import { Delete, HttpStatus, Param, Patch, UseGuards } from '@nestjs/common';
-import { NextFunction, Response } from 'express';
+import {
+  DefaultValuePipe,
+  Delete,
+  HttpStatus,
+  Param,
+  Patch,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { NextFunction, Request, Response } from 'express';
 
 import { JwtGuard, RolesGuard } from '../guard';
 import { GetUser } from './decorators';
@@ -14,6 +22,7 @@ import {
   ApiForbiddenResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -71,12 +80,32 @@ export class UserController {
   @ApiBadRequestResponse({
     description: 'Bad Request',
   })
+  @ApiQuery({
+    name: 'perPage',
+    type: 'number',
+    description: 'The numbers of items to return',
+    example: 10,
+  })
+  @ApiQuery({
+    name: 'page',
+    type: 'number',
+    example: 1,
+    description:
+      'The number of items to skip before starting to collect the result set',
+  })
   /**************************************************/
   @Get()
-  async getAllUser(@Res() res: Response, @Next() next: NextFunction) {
+  async getAllUser(
+    @Res() req: Request,
+    @Query('perPage', new DefaultValuePipe(10)) perPage: number,
+    @Query('page', new DefaultValuePipe(1)) page: number,
+    @Res() res: Response,
+    @Next() next: NextFunction,
+  ) {
     try {
-      const users = await this._userService.getAllUser();
-
+      const limit = +perPage || 10;
+      const skip = +page || 1;
+      const users = await this._userService.getAllUser(limit, skip);
       if (!users) {
         res.status(HttpStatus.BAD_REQUEST).json({
           success: false,
