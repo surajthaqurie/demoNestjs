@@ -75,11 +75,7 @@ export class UserService {
           HttpStatus.NOT_FOUND,
         );
       }
-<<<<<<< HEAD
-      const passMatched = await user.comparePassword(userLoginDto.password);
-=======
       const passMatched = await user.verifyPassword(userLoginDto.password);
->>>>>>> suraj
       if (!passMatched) {
         throw new HttpException(
           {

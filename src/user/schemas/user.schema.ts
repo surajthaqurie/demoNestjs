@@ -158,13 +158,6 @@ UserSchema.methods.getUserInfo = function (this: UserDocument): object {
   return userObject;
 };
 
-UserSchema.methods.comparePassword = async function (
-  /* delete operator to delete object stuffs */
-  // delete userObject.uniqueId;
-  delete userObject.password;
-  return userObject;
-};
-
 UserSchema.methods.verifyPassword = async function (
   this: UserDocument,
   password: string,
