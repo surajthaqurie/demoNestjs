@@ -36,10 +36,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
       success: false,
       error: error || message || status,
       msg: message || msg,
-      host: request.headers.host,
-      path: request.url,
       method: request.method,
-      timestamp: new Date().toLocaleString(),
+      // host: request.headers.host,
+      // path: request.url,
+      // timestamp: new Date().toLocaleString(),
     });
   }
 }

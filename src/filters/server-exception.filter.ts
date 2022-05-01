@@ -30,10 +30,10 @@ export class ServerExceptionFilter implements ExceptionFilter {
         status: status,
         error: type,
         msg: message,
-        host: request.headers.host,
-        path: request.url,
         method: request.method,
-        timestamp: new Date().toLocaleString(),
+        // host: request.headers.host,
+        // path: request.url,
+        // timestamp: new Date().toLocaleString(),
       });
     };
 

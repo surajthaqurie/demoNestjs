@@ -1,1 +1,1 @@
-export * from './expectation.interceptor';
+export * from './app.interceptor';

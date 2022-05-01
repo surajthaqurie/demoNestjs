@@ -58,7 +58,7 @@ export class AuthController {
     @Res() res: Response,
     @Next() next: NextFunction,
   ) {
-    try {
+    try {     
       const user = await this._userService.userSignup(authSignupDto);
       if (!user) {
         return res.status(HttpStatus.BAD_REQUEST).json({

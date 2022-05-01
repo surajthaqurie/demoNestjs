@@ -7,8 +7,6 @@ import { IUser } from './interfaces/user.interface';
 import { AuthLoginDto, AuthSignupDto } from 'src/auth/dto';
 
 import * as uuid from 'uuid';
-import * as bcrypt from 'bcrypt';
-
 @Injectable()
 export class UserService {
   constructor(
@@ -16,35 +14,35 @@ export class UserService {
   ) {}
 
   #sanitizeUser(user: IUser) {
-    return user.depopulate('password');
+    return user.getUserInfo();
   }
   async userSignup(userSignupDto: AuthSignupDto): Promise<IUser> {
     try {
       let query: object = { email: userSignupDto.email /* , deleted: false */ };
       let userCheck = await this._userModel.findOne(query);
-      // if (userCheck) {
-      //   throw new HttpException(
-      //     {
-      //       success: false,
-      //       status: 'Conflict',
-      //       msg: 'Sorry !!! this email address is already taken',
-      //     },
-      //     HttpStatus.CONFLICT,
-      //   );
-      // }
+      if (userCheck) {
+        throw new HttpException(
+          {
+            success: false,
+            status: 'Conflict',
+            msg: 'Sorry !!! this email address is already taken',
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
 
-      // query = { contactNo: userSignupDto.contactNo /* , deleted: false */ };
-      // userCheck = await this._userModel.findOne(query);
-      // if (userCheck) {
-      //   throw new HttpException(
-      //     {
-      //       success: false,
-      //       status: 'Conflict',
-      //       msg: 'Sorry !!! this phone number is already taken',
-      //     },
-      //     HttpStatus.CONFLICT,
-      //   );
-      // }
+      query = { contactNo: userSignupDto.contactNo /* , deleted: false */ };
+      userCheck = await this._userModel.findOne(query);
+      if (userCheck) {
+        throw new HttpException(
+          {
+            success: false,
+            status: 'Conflict',
+            msg: 'Sorry !!! this phone number is already taken',
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
 
       const createUser = new this._userModel(userSignupDto);
       createUser.uniqueId = createUser.created_by = uuid.v4();
@@ -77,11 +75,7 @@ export class UserService {
           HttpStatus.NOT_FOUND,
         );
       }
-      const passMatched = await bcrypt.compare(
-        userLoginDto.password,
-        user.password,
-      );
-
+      const passMatched = await user.comparePassword(userLoginDto.password);
       if (!passMatched) {
         throw new HttpException(
           {
