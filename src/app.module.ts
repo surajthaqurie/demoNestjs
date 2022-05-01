@@ -1,10 +1,16 @@
-import { Module } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { AppController } from './app.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 
-import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
+import { AuthMiddleware } from './middleware/auth';
+import { Auth2Middleware } from './middleware/auth2';
 
 @Module({
   imports: [
@@ -17,4 +23,20 @@ import { UserModule } from './user/user.module';
   // controllers: [AppController],
   // providers: [AppService],
 })
-export class AppModule {}
+// export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(AuthMiddleware, Auth2Middleware)
+      // .forRoutes('post');
+      // .forRoutes(AuthController);
+      .exclude({
+        path: 'auth/login',
+        method: RequestMethod.POST,
+      })
+      .forRoutes({
+        path: 'auth/post',
+        method: RequestMethod.GET,
+      });
+  }
+}

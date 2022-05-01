@@ -1,7 +1,21 @@
-import { Body, Controller, HttpStatus, Next, Post, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Next,
+  Post,
+  Param,
+  Query,
+  Res,
+  UseInterceptors,
+  ParseArrayPipe,
+  ParseIntPipe,
+  DefaultValuePipe,
+} from '@nestjs/common';
 import {
   ApiBadRequestResponse,
-  ApiBearerAuth,
   ApiConflictResponse,
   ApiConsumes,
   ApiCreatedResponse,
@@ -10,7 +24,9 @@ import {
   ApiProduces,
   ApiTags,
 } from '@nestjs/swagger';
+
 import { NextFunction, Response } from 'express';
+import { AppInterceptor } from 'src/interceptor';
 import { UserService } from 'src/user/user.service';
 import { AuthService } from './auth.services';
 import { AuthLoginDto, AuthSignupDto } from './dto';
@@ -35,6 +51,7 @@ export class AuthController {
   })
   @ApiConsumes('application/json')
   @ApiProduces('application/json')
+  /**************************************************/
   @Post('signup')
   async authSignup(
     @Body() authSignupDto: AuthSignupDto,
@@ -60,6 +77,7 @@ export class AuthController {
 
       return res.status(HttpStatus.CREATED).json({
         success: true,
+        status: 'Created',
         msg: 'User signed up successfully',
         token,
       });
@@ -80,24 +98,78 @@ export class AuthController {
   @ApiConsumes('application/json')
   @ApiProduces('application/json')
   @Post('login')
+  /**************************************************/
   async authLogin(
     @Body() authLoginDto: AuthLoginDto,
     @Res() res: Response,
     @Next() next: NextFunction,
   ) {
-    const user = await this._userService.userLogin(authLoginDto);
+    try {
+      const user = await this._userService.userLogin(authLoginDto);
+      if (!user) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          success: false,
+          status: 'Bad Request',
+          msg: 'Sorry !! something went wrong unable to login',
+        });
+      }
+      const payload = {
+        userId: user.uniqueId,
+        role: user.role,
+      };
 
-    const payload = {
-      userId: user.uniqueId,
-      role: user.role,
+      const token = await this._authService.generateJwtToken(payload);
+
+      return res.status(HttpStatus.OK).json({
+        success: true,
+        status: 'Success',
+        msg: 'User login successfully',
+        token,
+      });
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  /******************** Testing ********************/
+  // UseInterceptors And Pipe
+  @UseInterceptors(AppInterceptor)
+  @Get('post')
+  postList(): object {
+    console.log('api call');
+    return {
+      data: 'Post list',
     };
+  }
+  @Post('post/:id')
+  @HttpCode(404)
+  // ############# Normal case ##################
+  // detailById(@Param('id',new ParseIntPipe) id: number): string {
+  //   return 'list user' + id;
+  // }
 
-    const token = await this._authService.generateJwtToken(payload);
+  // detailById(
+  //   @Param(
+  //     'id',
+  //     new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE }),
+  //   )
+  //   id: number,
+  // ): string {
+  //   return 'list user' + id;
+  // }
 
-    return res.status(HttpStatus.OK).json({
-      success: true,
-      msg: 'User login successfully',
-      token,
-    });
+  // ############# Query default value ##################
+  // detailById(
+  //   @Query('page', new DefaultValuePipe(4))
+  //   page: number,
+  // ): string {
+  //   return 'list user' + page;
+  // }
+  // ############# Query in array id=123,6546 value ##################
+  detailById(
+    @Query('id', new ParseArrayPipe({ items: Number, separator: ',' }))
+    id: number[],
+  ): string {
+    return 'list user' + id;
   }
 }

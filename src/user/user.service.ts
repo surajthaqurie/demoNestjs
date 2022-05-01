@@ -22,29 +22,29 @@ export class UserService {
     try {
       let query: object = { email: userSignupDto.email /* , deleted: false */ };
       let userCheck = await this._userModel.findOne(query);
-      if (userCheck) {
-        throw new HttpException(
-          {
-            success: false,
-            status: 'Conflict',
-            msg: 'Sorry !!! this email address is already taken',
-          },
-          HttpStatus.CONFLICT,
-        );
-      }
+      // if (userCheck) {
+      //   throw new HttpException(
+      //     {
+      //       success: false,
+      //       status: 'Conflict',
+      //       msg: 'Sorry !!! this email address is already taken',
+      //     },
+      //     HttpStatus.CONFLICT,
+      //   );
+      // }
 
-      query = { contactNo: userSignupDto.contactNo /* , deleted: false */ };
-      userCheck = await this._userModel.findOne(query);
-      if (userCheck) {
-        throw new HttpException(
-          {
-            success: false,
-            status: 'Conflict',
-            msg: 'Sorry !!! this phone number is already taken',
-          },
-          HttpStatus.CONFLICT,
-        );
-      }
+      // query = { contactNo: userSignupDto.contactNo /* , deleted: false */ };
+      // userCheck = await this._userModel.findOne(query);
+      // if (userCheck) {
+      //   throw new HttpException(
+      //     {
+      //       success: false,
+      //       status: 'Conflict',
+      //       msg: 'Sorry !!! this phone number is already taken',
+      //     },
+      //     HttpStatus.CONFLICT,
+      //   );
+      // }
 
       const createUser = new this._userModel(userSignupDto);
       createUser.uniqueId = createUser.created_by = uuid.v4();
@@ -210,7 +210,6 @@ export class UserService {
 
   async tempDeleteUser(user: IUser): Promise<IUser> {
     try {
-      console.log(user);
       const query = { _id: user._id, deleted: false };
       const deletedUser = await this._userModel.findOneAndUpdate(
         query,

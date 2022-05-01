@@ -9,6 +9,10 @@ import * as Express from 'express';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
+import { ServerExceptionFilter, HttpExceptionFilter } from './filters';
+
+// import { AppInterceptor } from './interceptor';
+
 const server = Express();
 const PORT = process.env.PORT || 4001;
 
@@ -20,6 +24,11 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+  app.useGlobalFilters(
+    new ServerExceptionFilter(),
+    new HttpExceptionFilter(),
+  );
+  // app.useGlobalInterceptors(new AppInterceptor());
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Nestjs Demo Project')
