@@ -26,8 +26,6 @@ import { catchError, Observable, of, throwError } from 'rxjs';
     return next
       .handle()
       .pipe(tap(() => console.log(`After... ${Date.now() - now}ms`)));
-
-
   }
 } */
 export class AppInterceptor implements NestInterceptor {
@@ -61,3 +59,8 @@ export class AppInterceptor implements NestInterceptor {
     return next.handle();
   }
 }
+
+
+// req -->  interceptor -----> result
+
+// res<------ interceptor <------ result

@@ -1,12 +1,16 @@
 const { Controller, Get, Res, Req, Next } = require('@nestjs/common');
 import {
+  Body,
   DefaultValuePipe,
   Delete,
   HttpStatus,
   Param,
   Patch,
+  Put,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
 
@@ -26,6 +30,9 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { UpdateUserDto, UpdateUserPasswordDto } from './dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { imageUpload } from 'src/helpers/file.helper';
 @ApiTags('User')
 @Controller('users')
 export class UserController {
@@ -96,7 +103,7 @@ export class UserController {
   /**************************************************/
   @Get()
   async getAllUser(
-    @Res() req: Request,
+    @Req() req: Request,
     @Query('perPage', new DefaultValuePipe(10)) perPage: number,
     @Query('page', new DefaultValuePipe(1)) page: number,
     @Res() res: Response,
@@ -231,5 +238,102 @@ export class UserController {
       status: 'Success',
       msg: 'User deleted successfully',
     });
+  }
+  @Get(':id')
+  async getUerById(
+    @Param('id') id: string,
+    @Res() res: Response,
+    @Next() next: NextFunction,
+  ) {
+    try {
+      const getResponse = await this._userService.getUserById(id);
+      if (!getResponse) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          success: false,
+          status: 'Bad Request',
+          msg: 'Sorry !! something went wrong unable to get user',
+        });
+      }
+      return res.status(HttpStatus.OK).json({
+        success: true,
+        status: 'success',
+        msg: 'Getting user successfully',
+        user: getResponse,
+      });
+    } catch (error) {
+      return next(error);
+    }
+  }
+  @Put()
+  @UseGuards(JwtGuard)
+  @UseInterceptors(FileInterceptor('file', imageUpload))
+  async updateUserProfile(
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req: Request,
+    @Body() userUpdateDto: UpdateUserDto,
+    @Res() res: Response,
+    @Next() next: NextFunction,
+  ) {
+    try {
+      let imageUrl: string;
+      if (file) {
+        imageUrl = `${process.env.DEV_URL}/post/pictures/${file.filename}`;
+      }
+      const userId = req.user['id'];
+
+      const updateResponse = await this._userService.userUpdateProfile(
+        userUpdateDto,
+        imageUrl,
+        userId,
+      );
+      if (!updateResponse) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          success: false,
+          status: 'Bad Request',
+          msg: 'Sorry !! something went wrong unable to update user',
+        });
+      }
+      return res.status(HttpStatus.OK).json({
+        success: true,
+        status: 'success',
+        msg: 'User updated successfully',
+        user: updateResponse,
+      });
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  @Patch()
+  @UseGuards(JwtGuard)
+  async updateUserPassword(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Next() next: NextFunction,
+    @Body() updateUserPasswordDto: UpdateUserPasswordDto,
+  ) {
+    try {
+      const userId = req.user['id'];
+
+      const updateResponse = await this._userService.updatePassword(
+        updateUserPasswordDto,
+        userId,
+      );
+      if (!updateResponse) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          success: false,
+          status: 'Bad Request',
+          msg: 'Sorry !! something went wrong unable to update password',
+        });
+      }
+      return res.status(HttpStatus.OK).json({
+        success: true,
+        status: 'success',
+        msg: 'Password updated successfully',
+        user: updateResponse,
+      });
+    } catch (error) {
+      return next(error);
+    }
   }
 }

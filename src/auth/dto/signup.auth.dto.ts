@@ -108,7 +108,7 @@ export class AuthSignupDto {
   @IsOptional()
   @MinLength(5, { message: '$value is too short. Please enter full address' })
   @MaxLength(50)
-  @IsNotEmpty({ message: 'Address is required' })
+  @IsNotEmpty({ message: 'City is required' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   readonly city: string;
 

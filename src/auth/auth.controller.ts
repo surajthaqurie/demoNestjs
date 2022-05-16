@@ -6,13 +6,14 @@ import {
   HttpStatus,
   Next,
   Post,
-  Param,
   Query,
   Res,
   UseInterceptors,
   ParseArrayPipe,
+  UseGuards,
   ParseIntPipe,
   DefaultValuePipe,
+  Param,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -30,9 +31,12 @@ import { AppInterceptor } from '../interceptor';
 import { UserService } from 'src/user/user.service';
 import { AuthService } from './auth.services';
 import { AuthLoginDto, AuthSignupDto } from './dto';
+import { JwtGuard, RolesGuard } from 'src/guard';
+import { Role } from 'src/user/entities/role.enum';
+import { Roles } from 'src/user/decorators/roles.decorator';
 
 @ApiTags('Auth')
-@Controller('auth')
+@Controller('auth') // localhost:300/auth
 export class AuthController {
   constructor(
     private readonly _userService: UserService,
@@ -52,13 +56,13 @@ export class AuthController {
   @ApiConsumes('application/json')
   @ApiProduces('application/json')
   /**************************************************/
-  @Post('signup')
+  @Post('signup') // localhost;300/auth/signup
   async authSignup(
     @Body() authSignupDto: AuthSignupDto,
     @Res() res: Response,
     @Next() next: NextFunction,
   ) {
-    try {     
+    try {
       const user = await this._userService.userSignup(authSignupDto);
       if (!user) {
         return res.status(HttpStatus.BAD_REQUEST).json({
@@ -106,7 +110,6 @@ export class AuthController {
   ) {
     try {
       const user = await this._userService.userLogin(authLoginDto);
-      console.log(user);
       if (!user) {
         return res.status(HttpStatus.BAD_REQUEST).json({
           success: false,
@@ -125,6 +128,44 @@ export class AuthController {
         success: true,
         status: 'Success',
         msg: 'User login successfully',
+        token,
+      });
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  /* Employee */
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Post('employee/signup')
+  async authEmployeeSignup(
+    @Body() authSignupDto: AuthSignupDto,
+    @Res() res: Response,
+    @Next() next: NextFunction,
+  ) {
+    try {
+      const user = await this._userService.employeeSignup(authSignupDto);
+      if (!user) {
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          success: false,
+          status: 'Bad Request',
+          msg: 'Sorry !! something went wrong unable to create user',
+        });
+      }
+
+      const payload = {
+        userId: user.uniqueId,
+        role: user.role,
+      };
+
+      const token = await this._authService.generateJwtToken(payload);
+
+      return res.status(HttpStatus.CREATED).json({
+        success: true,
+        status: 'Created',
+        msg: 'Employee signed up successfully',
+        employee: user,
         token,
       });
     } catch (error) {

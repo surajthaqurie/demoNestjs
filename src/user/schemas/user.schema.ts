@@ -80,14 +80,14 @@ export class User {
   })
   address: string;
 
-  // @Prop({ type: String, minlength: 5, maxlength: 50, trim: true })
-  // street: string;
+  @Prop({ type: String, minlength: 5, maxlength: 50, trim: true })
+  street: string;
 
   @Prop({ type: String, minlength: 5, maxlength: 50, trim: true })
   city: string;
 
-  @Prop({ type: Number, minlength: 2 })
-  zipCode: number;
+  @Prop({ type: String, minlength: 2 })
+  zipCode: string;
 
   @Prop({ type: String, minlength: 5, maxlength: 50, trim: true })
   country: string;
@@ -129,7 +129,9 @@ const UserSchema = SchemaFactory.createForClass(User);
  */
 UserSchema.pre('save', async function (this: UserDocument, next: NextFunction) {
   let user = this;
-  if (!user.isModified('password')) return next();
+  if (!user.isModified('password')) {
+    return next();
+  }
   const salt = await bcrypt.genSalt(parseInt(process.env.BCRYPT_SALT));
   const hashPassword = await bcrypt.hash(user.password, salt);
   user.password = hashPassword;
@@ -138,9 +140,10 @@ UserSchema.pre('save', async function (this: UserDocument, next: NextFunction) {
 
 UserSchema.pre('save', async function (this: UserDocument, next: NextFunction) {
   let user = this;
-  if (!user.isModified('firstName') && !user.isModified('lastName'))
+  if (!user.isModified('firstName') && !user.isModified('lastName')) {
     return next();
-  user.fullName = this.firstName + '' + this.lastName;
+  }
+  user.fullName = this.firstName + ' ' + this.lastName;
   next();
 });
 

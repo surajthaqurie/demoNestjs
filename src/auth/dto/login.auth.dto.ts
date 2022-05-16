@@ -1,4 +1,4 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 import { Transform, TransformFnParams } from 'class-transformer';
 
 import { ApiProperty } from '@nestjs/swagger';
@@ -21,6 +21,7 @@ export class AuthLoginDto {
     example: '123@pass#123',
   })
   @IsNotEmpty({ message: 'Password is required' })
+  @IsString()
   @Transform(({ value }: TransformFnParams) => value?.trim())
   readonly password: string;
 }
